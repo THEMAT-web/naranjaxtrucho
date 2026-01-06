@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Página Simple</title>
+<style>
+    
+* {
+  box-sizing: border-box; /* evita que inputs y padding se salgan */
+}
+
+:root {
+  --mp-blue: #E29C7B;
+  --mp-dark-blue: #D77E5A;
+  --mp-gray: #F5F6F7;
+  --mp-text: #333;
+  --mp-white: #fff;
+}
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: var(--mp-gray);
+  margin: 0;
+  padding: 20px;
+  color: var(--mp-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+header {
+  background-color: #50007F;
+  color: orange;
+  width: 100%;
+  text-align: center;
+  padding: 20px 0;
+  font-size: 30px;
+}
+.buttons {
+  margin: 30px 0;
+  display: flex;
+  gap: 20px;
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+button:hover { background-color: #ddd; }
+
+.content { width: 100%; max-width: 1000px; text-align: center; margin-bottom: 20px; }
+.photo { margin: 50px 0; }
+.photo img { max-width: 350px; width: 100%; border-radius: 10px; }
+
+.container {
+  max-width: 400px;
+  width: 95%;
+  margin: auto;
+  background: var(--mp-white);
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  text-align: left;  
+}
+
+h2 {
+  text-align: center;
+  color: var(--mp-blue);
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 700;
+}
+form input, form select {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background: #fff;
+}
+form input:focus, form select:focus {
+  outline: none;
+  border-color: var(--mp-blue);
+  box-shadow: 0 0 6px rgba(226,156,123,0.3);
+}
+form button {
+  width: 100%;
+  padding: 12px;
+  background: var(--mp-blue);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  margin-top: 10px;
+}
+form button:hover { background: var(--mp-dark-blue); }
+.table-container {
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+th { background: #FFF3E0; text-align: left; }
+td.actions { text-align: right; }
+td.actions button { margin-left: 4px; border: none; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: white; cursor: pointer; }
+td.actions button.edit { background: var(--mp-blue); }
+td.actions button.delete { background: #D9534F; }
+#loader-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#loader-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box; /* IMPORTANTE */
+}
+
+.search-container input {
+  flex: 1;               /* ocupa todo el espacio disponible */
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box; /* hace que padding no rompa el ancho */
+}
+
+.search-container button {
+  flex-shrink: 0;         /* que no se achique */
+  padding: 12px 10px;
+  border-radius: 10px;
+  border: none;
+  background: var(--mp-blue);      /* color naranja */
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+  box-sizing: border-box;  /* padding no rompe ancho */
+}
+
+.loader {
+  width: 70px;
+  height: 70px;
+  border: 6px solid #E0E0E0;
+  border-top-color: var(--mp-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header>DATOS</header>
+
+<div style="width: 100%; max-width: 600px; display: flex; align-items: center; margin: 20px 0;">
+  <a href="home.html" style="text-decoration: none; color: #50007F; font-size: 24px; font-weight: bold;">
+    ← Volver
+  </a>
+</div>
+
+<div class="buttons">
+  <button onclick="mostrar('misDatos')">Mis datos</button>
+  <button onclick="mostrar('susDatos')">Sus datos</button>
+  <button onclick="mostrar('cargarDinero')">Cargar dinero</button>
+
+</div>
+
+<div class="content" id="content">
+  <p>Hola, soy @BK_THEMAT54, creador de Naranja X Trucho</p>
+</div>
+
+<div class="photo">
+  <img src="img3/mifoto.png" alt="Foto de ejemplo" id="miFoto">
+</div>
+
+<div id="loader-overlay"><div class="loader"></div></div>
+
+<script>
+const DB_NAME='bancoDB', DB_VERSION=2, STORE='cuentas';
+
+function mostrar(seccion) {
+  const content = document.getElementById('content');
+
+  if (seccion === 'misDatos') {
+    // Traer los valores guardados
+    const nombre = localStorage.getItem('mi_nombre') || '';
+    const nombre_completo = localStorage.getItem('mi_nombre_completo') || '';
+    const cuil = localStorage.getItem('mi_cuil') || '';
+    const cvu = localStorage.getItem('mi_cvu') || '';
+
+    // Crear el form
+    content.innerHTML = `
+      <div class="container">
+        <h2>Mis datos</h2>
+        <form id="form-mis-datos">
+          <input type="text" id="mis_nombre" placeholder="Nombre" value="${nombre}" required>
+          <input type="text" id="mis_nombre_completo" placeholder="Nombre completo" value="${nombre_completo}" required>
+          <input type="text" id="mis_cuil" placeholder="CUIL (11 dígitos)" maxlength="11" value="${cuil}" required>
+          <input type="text" id="mis_cvu" placeholder="CVU (22 dígitos)" maxlength="22" value="${cvu}" required>
+          <button type="submit">Guardar</button>
+        </form>
+      </div>
+    `;
+
+    // Agregar evento submit después de crear el form
+    document.getElementById('form-mis-datos').addEventListener('submit', e => {
+      e.preventDefault();
+      const nombreCompleto = document.getElementById('mis_nombre_completo').value.trim();
+      const nombreSimple = nombreCompleto.split(' ')[0];
+      let cuil = document.getElementById('mis_cuil').value.trim();
+      const cvu = document.getElementById('mis_cvu').value.trim();
+
+      // Formatear CUIL con guiones
+      cuil = formatearCUIT(cuil);
+
+      localStorage.setItem('mi_nombre', nombreSimple);
+      localStorage.setItem('mi_nombre_completo', nombreCompleto);
+      localStorage.setItem('mi_cuil', cuil);
+      localStorage.setItem('mi_cvu', cvu);
+
+      alert('Datos guardados correctamente!');
+    });
+  }
+
+  else if (seccion === 'susDatos') {
+    mostrarSusDatos();
+  }
+
+  else if (seccion === 'cargarDinero') {
+    const dineroGuardado = localStorage.getItem('dinero_cargado') || '';
+
+    content.innerHTML = `
+      <div class="container">
+        <h2>Cargar Dinero</h2>
+        <form id="form-cargar-dinero">
+          <input
+            type="text"
+            id="dinero"
+            placeholder="Cargar dinero"
+            inputmode="numeric"
+            autocomplete="off"
+            value="${dineroGuardado ? Number(dineroGuardado).toLocaleString('es-AR') : ''}"
+            required
+          >
+          <button type="submit">Guardar</button>
+        </form>
+      </div>
+    `;
+
+    const inputDinero = document.getElementById('dinero');
+
+    // Formateo en tiempo real
+    inputDinero.addEventListener('input', e => {
+      let valor = e.target.value;
+      valor = valor.replace(/\D/g, '');
+      e.target.value = valor ? Number(valor).toLocaleString('es-AR') : '';
+    });
+
+    document.getElementById('form-cargar-dinero').addEventListener('submit', e => {
+      e.preventDefault();
+      let dineroVal = inputDinero.value.replace(/\./g, '');
+      localStorage.setItem('dinero_cargado', dineroVal);
+      alert('Dinero guardado correctamente');
+    });
+  }
+}
+
+// FUNCIONES UTILES
+function generarCBU(){let cbu='';for(let i=0;i<22;i++) cbu+=Math.floor(Math.random()*10);return cbu;}
+function formatearNombre(nombre){return nombre.toLowerCase().split(' ').filter(p=>p.trim()!=='').map(p=>p.charAt(0).toUpperCase()+p.slice(1)).join(' ');}
+function formatearCUIT(cuit){return cuit.length===11?`${cuit.slice(0,2)}-${cuit.slice(2,10)}-${cuit.slice(10)}`:cuit;}
+function showLoader(){document.getElementById('loader-overlay').classList.add('visible');}
+function hideLoader(){document.getElementById('loader-overlay').classList.remove('visible');}
+
+// IndexedDB
+function openDB(){return new Promise((res,rej)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=e=>{const db=e.target.result;if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});};req.onsuccess=e=>res(e.target.result);req.onerror=e=>rej(e.target.error);});}
+async function getCuentas(){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readonly');const store=tx.objectStore(STORE);const r=store.getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+async function addCuenta(cuenta){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).add(cuenta);tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);});}
+async function updateCuenta(cuenta){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(cuenta);tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);});}
+async function deleteCuenta(id){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>res();tx.onerror=e=>rej(e.target.error);});}
+function renderTable(cuentas){const tbody=document.querySelector('#cuentas-table tbody'); tbody.innerHTML=''; if(cuentas.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;">No hay cuentas agregadas</td></tr>'; return;} cuentas.forEach(c=>{const tr=document.createElement('tr'); tr.innerHTML=`<td>${formatearNombre(c.nombre)}</td><td>${c.alias}</td><td>${c.cuit}</td><td>${c.cvu}</td><td>${c.tipo_banco}</td><td class="actions"><button class="edit" onclick="editCuenta(${c.id})">Editar</button><button class="delete" onclick="removeCuenta(${c.id})">Borrar</button></td>`; tbody.appendChild(tr);});}
+async function refresh(){const cuentas=await getCuentas(); renderTable(cuentas);}
+async function editCuenta(id){const cuentas=await getCuentas(); const c=cuentas.find(x=>x.id===id); if(!c) return; document.getElementById('edit-id').value=c.id; document.getElementById('nombre').value=formatearNombre(c.nombre); document.getElementById('alias').value=c.alias; document.getElementById('cuit').value=c.cuit.replace(/\D/g,''); document.getElementById('cvu').value=c.cvu; document.getElementById('tipo_banco').value=c.tipo_banco;}
+async function removeCuenta(id){await deleteCuenta(id); refresh();}
+
+// -----------------
+// FUNCION MOSTRAR SUS DATOS
+// -----------------
+function mostrarSusDatos(){
+  const content=document.getElementById('content');
+  content.innerHTML=`
+  <div class="container">
+    <h2>Datos del Destinatario</h2>
+    <div class="search-container">
+      <input type="number" id="dni-search" placeholder="Ingrese DNI" maxlength="8">
+      <button id="btn-search">Buscar</button>
+    </div>
+    <form id="form-cuenta">
+      <input type="hidden" id="edit-id">
+      <input type="text" id="nombre" placeholder="Nombre completo" required>
+      <input type="text" id="alias" placeholder="Alias">
+      <input type="text" id="cuit" placeholder="CUIT (11 dígitos)" maxlength="11" required>
+      <input type="text" id="cvu" placeholder="CVU (22 dígitos)" maxlength="22" required>
+      <select id="tipo_banco" required>
+        <option value="">Seleccione banco</option>
+        <option value="Mercado Pago">Mercado Pago</option>
+        <option value="Naranja X">Naranja X</option>
+        <option value="Banco de la Nación Argentina">BNA+</option>
+        <option value="Cuenta DNI">Cuenta DNI</option>
+        <option value="Banco de Galicia">Galicia</option>
+        <option value="Banco Santander">Santander</option>
+      </select>
+      <button type="submit">Guardar</button>
+    </form>
+    <div class="table-container">
+      <table id="cuentas-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Alias</th>
+            <th>CUIT</th>
+            <th>CVU</th>
+            <th>Banco</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="6" style="text-align:center;">No hay cuentas agregadas</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  `;
+
+  // Eventos de inputs
+  document.getElementById('cuit').addEventListener('input', e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,11);});
+  document.getElementById('cvu').addEventListener('input', e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,22);});
+
+  // Buscar DNI
+  document.getElementById('btn-search').addEventListener('click', async ()=>{
+    const dni=document.getElementById('dni-search').value.trim();
+    if(!dni) return alert('Ingrese un DNI válido');
+    showLoader();
+    try{
+      const apiUrl = `https://clientes.credicuotas.com.ar/v1/onboarding/resolvecustomers/${dni}`;
+      const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`;
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+
+      if(!Array.isArray(data) || data.length === 0) return alert('DNI no encontrado');
+
+      const cliente = data[0];
+      const partes = cliente.nombrecompleto.split(' ');
+      const apellido = partes[0];
+      const resto = partes.slice(1).join(' ');
+
+      document.getElementById('nombre').value = formatearNombre(`${apellido} ${resto}`);
+      document.getElementById('alias').value = '';
+      document.getElementById('cuit').value = cliente.cuit.replace(/\D/g,'');
+      document.getElementById('cvu').value = generarCBU();
+
+    } catch(err){
+      console.error('Error al buscar DNI:', err);
+      alert('Error al buscar DNI. Intente más tarde.');
+    } finally{
+      hideLoader();
+    }
+  });
+
+  // Guardar cuenta
+  document.getElementById('form-cuenta').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const id=document.getElementById('edit-id').value;
+    const nombre=formatearNombre(document.getElementById('nombre').value.trim());
+    const alias=document.getElementById('alias').value.trim();
+    let cuit=document.getElementById('cuit').value.replace(/\D/g,'');
+    const cvu=document.getElementById('cvu').value.replace(/\D/g,'');
+    const tipo_banco=document.getElementById('tipo_banco').value;
+    if(cuit.length!==11||cvu.length!==22) return alert('CUIT o CVU inválidos');
+    cuit=formatearCUIT(cuit);
+    if(id) await updateCuenta({id:Number(id),nombre,alias,cuit,cvu,tipo_banco});
+    else await addCuenta({nombre,alias,cuit,cvu,tipo_banco});
+    document.getElementById('form-cuenta').reset();
+    document.getElementById('edit-id').value='';
+    refresh();
+  });
+
+  refresh();
+}
+</script>
+</body>
+</html>

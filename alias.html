@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buscar Alias con Card</title>
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+  }
+
+  body {
+    background-image: url('img3/fondo_alias.png');
+    background-size: cover;
+    background-position: fit_center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    position: relative;
+    color: white;
+  }
+
+  .btn-back {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 50px;
+    height: 40px;
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .input-container {
+    position: absolute;
+    left: 50%;
+    top: 125px;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 570px;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    width: 370px;
+    font-size: 16px;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: black;
+  }
+
+  .btn-validate {
+    padding: 10px 20px;
+    width: 370px;
+    height: 45px;
+    border: none;
+    border-radius: 15px;
+    background-color: rgba(80,0,127,100);
+    color: rgba(255,255,255,100);
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+    z-index: 5;
+  }
+
+  .overlay.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .card {
+  position: fixed;
+  left: 50%;
+  bottom: -400px;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 400px;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 40px 20px 20px 20px;
+  box-shadow: 0 -4px 10px rgba(0,0,0,0.3);
+  transition: bottom 0.5s ease;
+  color: black;
+  z-index: 10;
+}
+
+  .card.show {
+    bottom: 0;
+  }
+
+  .card h2 { 
+  text-align: left;
+   margin-top: 0; 
+   }
+   
+  .card p { 
+  margin: 10px 0; 
+  text-align: left; 
+  }
+  
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .error-msg { color: red; text-align: center; margin-top: 10px; }
+  
+  .card-header {
+  text-align: left;
+  margin-bottom: 15px;
+  padding-left: 5px;   /* ← empuja a la izquierda como la app */
+}
+
+.card-header h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+.cuil {
+  font-size: 14px;
+  color: #555;
+  margin-top: 4px;
+}
+
+.bank-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+  margin-top: 10px;
+  padding-left: 5px;   /* ← MISMA línea que nombre */
+}
+
+.bank-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.bank-info {
+  font-size: 14px;
+  text-align: left;    /* ← clave */
+}
+
+.bank-info p {
+  margin: 2px 0;
+  color: #555;
+  text-align: left;
+}
+
+.btn-continue {
+  margin-top: 20px;
+  width: 100%;
+  height: 45px;
+  border: none;
+  border-radius: 15px;
+  background: #50007f;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+
+<a href="nueva_cuenta.html" class="btn-back"></a>
+
+<div class="input-container">
+  <input type="text" id="aliasInput" placeholder="Ingresá tu alias">
+  <button class="btn-validate" onclick="buscarAlias()">Validar</button>
+  <p class="error-msg" id="errorMsg"></p>
+</div>    
+
+<div class="overlay" id="overlay" onclick="cerrarCard()"></div>
+
+<div class="card" id="card">
+  <button class="close-btn" onclick="cerrarCard()">×</button>
+
+  <!-- Nombre -->
+  <div class="card-header">
+    <h2 id="nombreMostrar"></h2>
+    <p class="cuil" id="cuitMostrar"></p>
+  </div>
+
+  <!-- Banco -->
+  <div class="bank-box">
+    <img src="img4/mercadopago.png" class="bank-logo" id="bankLogo">
+    <div class="bank-info">
+      <strong id="bancoMostrar"></strong>
+      <p id="cvuMostrar"></p>
+      <p id="aliasMostrar"></p>
+    </div>
+  </div>
+
+  <button class="btn-continue" onclick="btn_continue()">Continuar</button>
+</div>
+
+<script>
+      
+let su_nombre_completo = '', su_cuit = '', su_cvu = '', banco_seleccionado = '';
+
+// IndexedDB
+const DB_NAME='bancoDB', DB_VERSION=2, STORE='cuentas';
+
+function openDB() {
+    return new Promise((res, rej) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = e => {
+            const db = e.target.result;
+            if(!db.objectStoreNames.contains(STORE))
+                db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        };
+        req.onsuccess = e => res(e.target.result);
+        req.onerror = e => rej(e.target.error);
+    });
+}
+
+async function getCuentas() {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const store = tx.objectStore(STORE);
+        const request = store.getAll();
+        request.onsuccess = () => res(request.result);
+        request.onerror = () => rej(request.error);
+    });
+}
+
+// Buscar alias y mostrar card
+async function buscarAlias() {
+    const alias = document.getElementById('aliasInput').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+    errorMsg.textContent = '';
+
+    if(!alias) { errorMsg.textContent = 'Ingrese un alias'; return; }
+
+    const cuentas = await getCuentas();
+    const cuenta = cuentas.find(c => c.alias && c.alias.toLowerCase() === alias.toLowerCase());
+
+    if(cuenta){
+        su_nombre_completo = cuenta.nombre || '';
+        su_cuit = cuenta.cuit || '';
+        su_cvu = cuenta.cvu || '';
+        banco_seleccionado = cuenta.tipo_banco || '';
+        
+        const logo = document.getElementById('bankLogo');
+
+switch (banco_seleccionado.toLowerCase()) {
+  case 'mercado pago':
+  case 'mercadopago':
+    logo.src = 'img4/mercadopago.png';
+    break;
+
+  case 'naranja x':
+  case 'nx':
+  case 'naranjax':
+    logo.src = 'img4/nx.png';
+    break;
+
+  case 'uala':
+    logo.src = 'img4/uala.png';
+    break;
+
+  case 'brubank':
+    logo.src = 'img4/brubank.png';
+    break;
+
+  default:
+    logo.src = 'img4/banco_default.png'; // por si no coincide
+}
+
+       
+       
+        document.getElementById('nombreMostrar').innerText = su_nombre_completo;
+document.getElementById('cuitMostrar').innerText = `CUIL: ${su_cuit}`;
+document.getElementById('cvuMostrar').innerText = `CVU: ${su_cvu}`;
+document.getElementById('aliasMostrar').innerText = `Alias: ${alias}`;
+document.getElementById('bancoMostrar').innerText = banco_seleccionado;
+
+        document.getElementById('card').classList.add('show');
+        document.getElementById('overlay').classList.add('show');
+    } else {
+        errorMsg.textContent = 'Alias no encontrado';
+    }
+}
+
+function cerrarCard() {
+    document.getElementById('card').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+}
+
+
+function btn_continue() {
+  const cuentaSeleccionada = {
+    nombre: su_nombre_completo,
+    cuit: su_cuit,
+    cvu: su_cvu,
+    banco: banco_seleccionado,
+    alias: document.getElementById('aliasInput').value.trim()
+  };
+
+  localStorage.setItem(
+    'selectedCuenta',
+    JSON.stringify(cuentaSeleccionada)
+  );
+
+  window.location.href = 'monto.html';
+}
+
+</script>
+
+</body>
+</html>

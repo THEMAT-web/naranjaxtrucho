@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loader Tres Puntitos</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #FAFAFA;
+    margin: 0;
+    font-family: Arial, sans-serif;
+  }
+
+  .loader {
+    display: flex;
+    gap: 15px; 
+    margin-bottom: 20px;
+  }
+
+  .dot {
+    width: 10px;   
+    height: 10px;
+    background-color: #8A2BE2;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .loader-text {
+    padding: 30px;
+    font-size: 16px;
+    color: #333;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="loader">
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<div class="loader-text">Estamos procesando la transferencia</div>
+
+<div id="comprobanteTemporal" style="position:absolute; top:-9999px; left:-9999px;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+document.querySelectorAll('.dot').forEach((dot, i) => dot.style.animationDelay = `${i*0.2}s`);
+
+function formatearCUIT(cuit) {
+  cuit = cuit.replace(/\D/g,'');
+  return cuit.length === 11 ? `${cuit.slice(0,2)}-${cuit.slice(2,10)}-${cuit.slice(10)}` : cuit;
+}
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random()*16|0, v = c=='x'?r:(r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+
+function codigo(len=22) {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  return Array.from({length:len},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+function generarComprobanteHTML() {
+  const f = new Date();
+  const d = JSON.parse(localStorage.getItem("selectedCuenta") || "{}");
+  const miCuil = localStorage.getItem("mi_cuil") || "";
+
+  let logo = 'img4/banco_default.png';
+  const b = (d.banco || "").toLowerCase();
+  if(b.includes("mercado")) logo="img4/mercadopago.png";
+  else if(b.includes("naranja")) logo="img4/nx.png";
+  else if(b.includes("uala")) logo="img4/uala.png";
+  else if(b.includes("brubank")) logo="img4/brubank.png";
+
+  const monto = Number(localStorage.getItem("monto") || 0);
+
+  return `
+  <div style="position:relative;width:375px;height:auto;font-family:Arial,sans-serif;background: url('img5/fondo_comprobante2.png') no-repeat center/cover; padding:20px;">
+      <div style="position:absolute; top:233px; left:54px; font-size:27px; font-weight:bold; color:#333;">
+        <span style="position:absolute; top:8px; left:-12px; font-size:17px; font-weight:bold;">$</span>
+        ${monto.toLocaleString("es-AR")}
+      </div>
+      <div style="position:absolute; top:268px; left:42px; font-size:12px; color:#686868;">
+        ${String(f.getDate()).padStart(2,'0')}/${String(f.getMonth()+1).padStart(2,'0')}/${f.getFullYear()} - ${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}h
+      </div>
+      <div style="position:absolute; top:365px; left:83px; font-size:15px; color:#373737;">${localStorage.getItem("mi_nombre_completo") || ""}</div>
+      <div style="position:absolute; top:385px; left:83px; font-size:11px; color:#9D9D9D;">Naranja X</div>
+      <div style="position:absolute; top:420px; left:42px; font-size:12px; color:#818181;">CBU</div>
+      <div style="position:absolute; top:438px; left:42px; font-size:15px; color:#0D0D0D;">${localStorage.getItem("mi_cvu") || ""}</div>
+      <div style="position:absolute; top:475px; left:42px; font-size:12px; color:#818181;">CUIL</div>
+      <div style="position:absolute; top:494px; left:42px; font-size:15px; color:#0D0D0D;">${formatearCUIT(miCuil)}</div>
+      <div style="position:absolute; top:601px; left:83px; font-size:15px; color:#373737;">${d.nombre || ""}</div>
+      <img src="${logo}" style="position:absolute; top:605px; left:47px; width:22px; height:22px; object-fit:contain;">
+      <div style="position:absolute; top:622px; left:83px; font-size:11px; color:#9D9D9D;">${d.banco || ""}</div>
+      <div style="position:absolute; top:655px; left:42px; font-size:13px; color:#818181;">CVU</div>
+      <div style="position:absolute; top:675px; left:42px; font-size:15px; color:#0D0D0D;">${d.cvu || ""}</div>
+      <div style="position:absolute; top:710px; left:42px; font-size:13px; color:#818181;">CUIL</div>
+      <div style="position:absolute; top:730px; left:42px; font-size:15px; color:#0D0D0D;">${d.cuit || ""}</div>
+      <div style="position:absolute; top:912px; left:42px; font-size:15px; color:#282828;">${uuid()}</div>
+      <div style="position:absolute; top:857px; left:42px; font-size:15px; color:#282828;">${codigo()}</div>
+  </div>
+  `;
+}
+
+const tempDiv = document.getElementById('comprobanteTemporal');
+tempDiv.innerHTML = generarComprobanteHTML();
+
+html2canvas(tempDiv).then(canvas => {
+  const imgData = canvas.toDataURL('image/png');
+
+  let historial = JSON.parse(localStorage.getItem('historialComprobantes') || "[]");
+  const d = JSON.parse(localStorage.getItem("selectedCuenta") || "{}");
+  const monto = Number(localStorage.getItem("monto") || 0);
+
+  const f = new Date();
+  const mesesEsp = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  historial.push({
+    nombre: d.nombre || "Sin nombre",
+    img: imgData,
+    monto: monto,
+    fechaTexto: `${f.getFullYear()}/${String(f.getMonth()+1).padStart(2,'0')}/${String(f.getDate()).padStart(2,'0')} - ${String(f.getHours()).padStart(2,'0')}:${String(f.getMinutes()).padStart(2,'0')}h`,
+    fechaLegible: `${f.getDate()} de ${mesesEsp[f.getMonth()]}`,
+    fechaISO: f.toISOString(),  <!-- 🔴 ÚNICA LÍNEA AGREGADA -->
+    nombreCompleto: localStorage.getItem("mi_nombre_completo") || "",
+    cbu: localStorage.getItem("mi_cvu") || "",
+    cuil: localStorage.getItem("mi_cuil") || "",
+    destNombre: d.nombre || "",
+    destBanco: d.banco || "",
+    destCvu: d.cvu || "",
+    destCuil: d.cuit || "",
+    idLargo: uuid(),
+    codigoRandom: codigo(),
+    bancoImg: (() => {
+      const b = (d.banco || "").toLowerCase();
+      if(b.includes("mercado")) return "img4/mercadopago.png";
+      else if(b.includes("naranja")) return "img4/nx.png";
+      else if(b.includes("uala")) return "img4/uala.png";
+      else if(b.includes("brubank")) return "img4/brubank.png";
+      else return "img4/banco_default.png";
+    })()
+  });
+
+  localStorage.setItem('historialComprobantes', JSON.stringify(historial));
+
+  setTimeout(() => {
+    window.location.href = 'comprobante.html';
+  }, 2000);
+});
+</script>
+
+</body>
+</html>

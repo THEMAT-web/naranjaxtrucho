@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comprobante de Transferencia</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:Arial,sans-serif;position:relative;}
+
+:root{
+  --text-top:135px;
+  --text-left:40px;
+  --circle-size:84px;
+  --circle-top:30px;
+  --circle-left:164px;
+  --pulgar-top:-10px;
+  --pulgar-left:0px;
+  --pulgar-width:85px;
+}
+
+body{
+  background-image:url('img3/fondo_comprobante.png');
+  background-size:cover;
+  background-repeat:no-repeat;
+}
+
+/* Círculo */
+.circle{
+  position:absolute;
+  top:var(--circle-top);
+  left:var(--circle-left);
+  width:var(--circle-size);
+  height:var(--circle-size);
+  background:#30CA7C;
+  border-radius:50%;
+  overflow:hidden;
+}
+
+.circle .pulgar{
+  position:absolute;
+  top:var(--pulgar-top);
+  left:var(--pulgar-left);
+  width:var(--pulgar-width);
+  transform:translateY(0) scale(1);
+  opacity:1;
+}
+
+/* ANIMACIÓN */
+.pulgar.animar{
+  animation:subir 1s ease-out forwards;
+}
+
+@keyframes subir{
+  0%{transform:translateY(100%) scale(.5);opacity:0;}
+  70%{transform:translateY(-5%) scale(1.1);opacity:1;}
+  100%{transform:translateY(0) scale(1);opacity:1;}
+}
+
+.comprobante-text{
+  position:absolute;
+  top:var(--text-top);
+  left:var(--text-left);
+  text-align:center;
+  font-size:23px;
+  font-weight:bold;
+  color:#333;
+  width:345px;
+}
+
+/* BOTÓN */
+#btnInvisible{
+  position:absolute;
+  top:302px;
+  left:35px;
+  width:340px;
+  height:50px;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+}
+
+#irInicio{
+  position:absolute;
+  top:750px;
+  left:170px;
+  color:#50007f;
+  font-size:15px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="circle">
+  <img src="img1/pulgar.png" class="pulgar">
+</div>
+
+<div class="comprobante-text" id="comprobanteText">
+  ¡Listo! Transferiste <span class="amount">$0</span> a <span class="user">Usuario</span>
+</div>
+
+<button id="btnInvisible"></button>
+<div id="irInicio">ir a inicio</div>
+
+<script>
+// Datos
+const monto = localStorage.getItem('monto') || '0';
+let usuario='Usuario';
+const c=localStorage.getItem('selectedCuenta');
+if(c){try{usuario=JSON.parse(c).nombre||'Usuario'}catch{}}
+
+document.querySelector('.amount').innerText=`$${Number(monto).toLocaleString('es-AR')}`;
+document.querySelector('.user').innerText=usuario;
+
+// Navegación
+irInicio.onclick=()=>location.href='home.html';
+btnInvisible.onclick=()=>location.href='comprobante2.html';
+
+// 🔥 CONTROL REAL DE ANIMACIÓN
+const pulgar=document.querySelector('.pulgar');
+
+if(!sessionStorage.getItem('pulgarAnimado')){
+  pulgar.classList.add('animar');
+  sessionStorage.setItem('pulgarAnimado','true');
+}
+</script>
+
+</body>
+</html>
