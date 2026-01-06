@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de Comprobantes</title>
+
+<style>
+body {
+  background-image: url('img3/fondo_historial.png');
+  background-size: cover;
+  background-position: fit_center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  position: absolute;
+  top: 62px;
+  left: 15px;
+  font-size: 25px;
+  color: #333;
+}
+
+/* ===== TEXTO DESCRIPTIVO (NUEVO) ===== */
+.descripcion-historial {
+  position: absolute;
+  top: 120px;   /* movelo */
+  left: 15px;  /* movelo */
+  right: 15px;
+  font-size: 15px;
+  color: #555555; /* cambiá color */
+  line-height: 1.4;
+}
+/* =================================== */
+
+.historial {
+  position: absolute;
+  top: 180px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* BOTÓN COMPROBANTE */
+.transfer-btn {
+  position: relative;
+  background: transparent;
+  border-radius: 12px;
+  height: 45px;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform .15s;
+}
+
+.transfer-btn:hover {
+  transform: scale(1.02);
+}
+
+/* IMAGEN BANCO */
+.transfer-img {
+  position: absolute;
+  top: 25px;
+  left: 10px;
+  width: 25px;
+  height: 17px;
+}
+
+/* FECHA */
+.transfer-fecha {
+  position: absolute;
+  top: 6px;
+  left: 55px;
+  font-size: 11px;
+  color: #808080;
+}
+
+/* NOMBRE */
+.transfer-nombre {
+  position: absolute;
+  top: 22px;
+  left: 55px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333333;
+}
+
+/* BANCO */
+.transfer-banco {
+  position: absolute;
+  top: 42px;
+  left: 54px;
+  font-size: 13px;
+  color: #6B6B6B;
+}
+
+/* MONTO */
+.transfer-monto {
+  position: absolute;
+  top: 21px;
+  right: 9px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #373737;
+}
+
+/* ESTADO ENVIADA */
+.transfer-estado {
+  position: absolute;
+  top: 43px;
+  right: 6px;
+  font-size: 11px;
+  color: #398549;
+  font-weight: bold;
+}
+
+/* BOTÓN BORRAR */
+#btn-borrar-historial {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* LÍNEA ENTRE COMPROBANTES */
+.linea-separadora {
+  width: 100%;
+  height: 1px;
+  background: #EDEDED;
+  margin: -6px 0;
+}
+
+/* BOTÓN NUEVA CUENTA */
+#btn-nueva-cuenta {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Historial</h1>
+
+<!-- TEXTO DESCRIPTIVO -->
+<div class="descripcion-historial">
+  Consultá tus comprobantes y el estado de las transferencias que hiciste.
+</div>
+
+<div class="historial" id="historial"></div>
+
+<button id="btn-borrar-historial"></button>
+<button id="btn-nueva-cuenta"></button>
+
+<script>
+const contenedor = document.getElementById('historial');
+
+function renderHistorial() {
+  contenedor.innerHTML = '';
+
+  const historial = JSON.parse(
+    localStorage.getItem('historialComprobantes') || '[]'
+  );
+
+  if (historial.length === 0) {
+    contenedor.innerHTML = '<p>No hay comprobantes.</p>';
+    return;
+  }
+
+  historial.forEach((c, index) => {
+    const btn = document.createElement('div');
+    btn.className = 'transfer-btn';
+
+    const imgBanco = c.bancoImg || 'img4/banco_default.png';
+    const fecha = c.fechaLegible || '-';
+
+    btn.innerHTML = `
+      <img class="transfer-img" src="${imgBanco}">
+      <span class="transfer-fecha">${fecha}</span>
+      <span class="transfer-nombre">${c.destNombre || ''}</span>
+      <span class="transfer-banco">A ${c.destBanco || ''}</span>
+      <span class="transfer-monto">$${Number(c.monto || 0).toLocaleString('es-AR')}</span>
+      <span class="transfer-estado">Enviada</span>
+    `;
+
+    btn.onclick = () => {
+      localStorage.setItem(
+        'selectedCuentaHistorial',
+        JSON.stringify(c)
+      );
+      window.location.href = 'ver_comprobante.html';
+    };
+
+    contenedor.appendChild(btn);
+
+    if (index < historial.length - 1) {
+      const linea = document.createElement('div');
+      linea.className = 'linea-separadora';
+      contenedor.appendChild(linea);
+    }
+  });
+}
+
+renderHistorial();
+
+document.getElementById('btn-borrar-historial').addEventListener('click', () => {
+  if (confirm('¿Eliminar todo el historial?')) {
+    localStorage.removeItem('historialComprobantes');
+    localStorage.removeItem('selectedCuentaHistorial');
+    renderHistorial();
+  }
+});
+
+document.getElementById('btn-nueva-cuenta').onclick = () => {
+  window.location.href = 'nueva_cuenta.html';
+};
+</script>
+
+</body>
+</html>

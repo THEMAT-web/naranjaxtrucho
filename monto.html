@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingresar monto</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html, body{
+  height:100%;
+  font-family:Arial, sans-serif;
+}
+
+body{
+  background-image:url('img3/fondo_monto.png');
+  background-size:cover;
+  background-position:fit_center;
+  background-repeat:no-repeat;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  color:#000;
+  position:relative;
+}
+
+/* botón volver */
+#btn1{
+  position:absolute;
+  top:10px;
+  left:10px;
+  width:50px;
+  height:50px;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+}
+
+/* título */
+.titulo{
+  margin-top:80px;
+  text-align:left;
+  font-size:24px;
+  font-weight:700;      /* grueso */
+  color:#333333;        /* color */
+  padding:0 20px;
+}
+
+/* monto */
+.monto{
+  margin-top:35px;
+  margin-left:10px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  font-weight:bold;
+}
+
+.simbolo{
+  font-size:22px;
+  margin-right:2px;
+}
+
+.monto input{
+  background:transparent;
+  border:none;
+  outline:none;
+  color:#333333;        /* color */
+  font-size:38px;
+  font-weight:700;      /* bold */
+  width:auto;
+  min-width:1ch;
+  text-align:left;
+}
+
+/* saldo */
+.saldo{
+  margin-top:10px;       /* más arriba */
+  margin-left:40px;
+  display:flex;
+  gap:6px;
+  align-items:center;
+  font-size:13px;       /* más chico */
+  color:#5B5B5B;        /* gris suave */
+}
+
+.saldo span{
+  font-size:13px;
+  font-weight:500;
+  color:#5B5B5B;        /* gris suave */
+}
+
+.btn-continue {
+  margin-top: 490px;
+  width: 95%;
+  height: 45px;
+  border: none;
+  border-radius: 15px;
+  background: #50007f;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<button id="btn1"></button>
+
+<div class="titulo" id="titulo">
+  ¿Cuánto vas a transferir?
+</div>
+
+<div class="monto">
+  <span class="simbolo">$</span>
+  <input
+    id="montoInput"
+    type="text"
+    value="0"
+    inputmode="numeric"
+    pattern="[0-9]*"
+  >
+</div>
+
+<div class="saldo">
+  Dinero en cuenta
+  <span id="saldoTexto">$ 0</span>
+</div>
+
+ <button class="btn-continue" onclick="btn_continue()">Continuar</button>
+
+<script>
+/* ================= DOM ================= */
+const btn1 = document.getElementById('btn1');
+const montoInput = document.getElementById('montoInput');
+const titulo = document.getElementById('titulo');
+const saldoTexto = document.getElementById('saldoTexto');
+
+/* volver */
+btn1.onclick = () => location.href = 'alias.html';
+
+/* ================= NOMBRE (MISMO DE alias.html) ================= */
+function cargarNombreDesdeAlias(){
+  return new Promise((resolve) => {
+    const saved = localStorage.getItem('selectedCuenta');
+    if(!saved){
+      resolve('Usuario');
+      return;
+    }
+
+    try{
+      const cuenta = JSON.parse(saved);
+      resolve(cuenta.nombre || 'Usuario');
+    }catch{
+      resolve('Usuario');
+    }
+  });
+}
+
+/* ================= SALDO (IndexedDB REAL) ================= */
+
+function cargarSaldo(){
+  return new Promise((resolve) => {
+    let dinero = localStorage.getItem('dinero_cargado');
+
+    if(!dinero){
+      resolve(0);
+      return;
+    }
+
+    // quitar separadores de miles
+    dinero = dinero.replace(/\./g,'');
+
+    resolve(Number(dinero));
+  });
+}
+
+/* ================= INPUT MONTO ================= */
+
+/* borrar 0 al tocar */
+montoInput.addEventListener('focus', () => {
+  if(montoInput.value === '0'){
+    montoInput.value = '';
+  }
+});
+
+/* solo números + formato */
+montoInput.addEventListener('input', () => {
+  let v = montoInput.value.replace(/\D/g,'');
+  montoInput.value = v ? Number(v).toLocaleString('es-AR') : '';
+});
+
+/* si queda vacío → vuelve 0 */
+montoInput.addEventListener('blur', () => {
+  if(montoInput.value === ''){
+    montoInput.value = '0';
+  }
+});
+
+/* ================= INIT ================= */
+(async () => {
+  const nombre = await cargarNombreDesdeAlias();
+  const saldo = await cargarSaldo();
+
+  titulo.textContent =
+    `¿Cuánto vas a transferir a ${nombre}?`;
+
+  saldoTexto.textContent =
+    '$ ' + saldo.toLocaleString('es-AR');
+})();
+
+
+function ajustarAncho(){
+  montoInput.style.width = (montoInput.value.length || 1) + 'ch';
+}
+
+ajustarAncho();
+
+montoInput.addEventListener('input', ajustarAncho);
+montoInput.addEventListener('blur', ajustarAncho);
+
+
+function btn_continue() {
+  // Guardar monto en localStorage
+  const montoValor = montoInput.value.replace(/\./g,''); // sin puntos
+  localStorage.setItem('monto', montoValor);
+
+  window.location.href = 'confirmar.html';
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Naranja X Trucho</title>
+
+<style>
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ff7f00, #8a2be2);
+}
+
+.card {
+  width: 360px;
+  background: #FAFAFA;
+  padding: 28px 22px;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  text-align: center;
+}
+
+.card img.logo {
+  width: 100px;
+  margin-bottom: 16px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  color: #333;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #555;
+  text-align: left;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-top: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+button {
+  margin-top: 18px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 0;
+  background: #ffce00;
+  color: #003087;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #ffd633;
+}
+
+.small {
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.success { color: green; }
+.error { color: #c0392b; }
+
+.note {
+  font-size: 12px;
+  color: #555;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.note a {
+  color: #003087;
+  cursor: pointer;
+  text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+  <img class="logo" src="img2/nx.png" alt="Logo">
+  <h2>Naranja X Trucho</h2>
+
+  <div id="msg" class="small"></div>
+
+  <label>Ingresá tu PIN</label>
+  <input id="pin" type="text" autocomplete="off">
+
+  <button id="pinBtn">Entrar</button>
+
+  <div class="note">
+     Telegram @BK_THEMAT54<br>
+    Si no tenes PIN, <a id="noCred">hacé click aquí</a>.
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
+(async function(){
+
+  // Configuración de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBw46PbDaRKV6EOBOCjhpwg03tsjFpR1iA",
+    authDomain: "naranja-e02c1.firebaseapp.com",
+    databaseURL: "https://naranja-e02c1-default-rtdb.firebaseio.com",
+    projectId: "naranja-e02c1",
+    storageBucket: "naranja-e02c1.firebasestorage.app",
+    messagingSenderId: "361427675326",
+    appId: "1:361427675326:android:a8809226a2e850c33d16ef"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const msg = document.getElementById('msg');
+
+  const deviceIdKey = 'deviceId';
+  let deviceId = localStorage.getItem(deviceIdKey);
+  if(!deviceId){
+    // Genera un ID aleatorio de 16 caracteres para este dispositivo
+    deviceId = Math.random().toString(36).substr(2,16);
+    localStorage.setItem(deviceIdKey, deviceId);
+  }
+
+  document.getElementById('noCred').onclick = () => {
+    window.location.href = 'enlace.html';
+  };
+
+  document.getElementById('pinBtn').onclick = async () => {
+    const pinValue = document.getElementById('pin').value.trim();
+    msg.textContent = '';
+    msg.className = 'small';
+
+    if(!pinValue){
+      msg.textContent = 'Ingresá un PIN';
+      msg.classList.add('error');
+      return;
+    }
+
+    try {
+      const snapshot = await db.ref('pines/' + pinValue).get();
+
+      if(!snapshot.exists()){
+        msg.textContent = 'PIN incorrecto';
+        msg.classList.add('error');
+        return;
+      }
+
+      const pinData = snapshot.val();
+
+      // Validar si el PIN está bloqueado
+      if(pinData.action === "lock"){
+        msg.textContent = 'PIN bloqueado, habla con tu vendedor para desbloquearlo';
+        msg.classList.add('error');
+        return;
+      }
+
+      // Validar si el PIN ya está en uso en otro dispositivo
+      if(pinData.device_id && pinData.device_id !== deviceId){
+        msg.textContent = 'PIN usado en otro dispositivo';
+        msg.classList.add('error');
+        return;
+      }
+
+      // Guardar device_id en Firebase
+      await db.ref('pines/' + pinValue + '/device_id').set(deviceId);
+
+      msg.textContent = `PIN correcto! Acción: ${pinData.action || 'sin acción'}`;
+      msg.classList.add('success');
+
+      // Guardar en localStorage para mantener sesión
+      localStorage.setItem('currentPin', pinValue);
+
+      // Redirigir al home
+      setTimeout(()=> window.location.href='home.html', 500);
+
+    } catch(e){
+      console.error(e);
+      msg.textContent = 'Error al validar PIN';
+      msg.classList.add('error');
+    }
+  };
+
+})();
+</script>
+
+</body>
+</html>
