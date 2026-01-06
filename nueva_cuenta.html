@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página con Fondo y Botones</title>
+  <style>
+    /* Reset básico */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    /* Fondo con imagen */
+    body {
+      background-image: url('img3/fondo_nuevacuenta.png');
+      background-size: cover;        
+      background-position: fit_center;
+      background-repeat: no-repeat;  
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+      position: relative;
+    }
+
+    /* Botón fijo arriba a la izquierda */
+    #btn1 {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 50px;   /* ancho del botón */
+      height: 50px;   /* alto del botón */
+      background-color: transparent;
+      color: transparent;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* Botón que podés mover con top y left */
+    #btn2 {
+      position: absolute;
+      top: 130px;
+      left: 30px;
+      width: 350px;  /* ancho */
+      height: 65px;  /* alto */
+      background-color: transparent;
+      color: transparent;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    
+    #btn3 {
+      position: absolute;
+      top: 215px;
+      left: 230px;
+      width: 150px;  /* ancho */
+      height: 65px;  /* alto */
+      background-color: transparent;
+      color: transparent;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+  </style>
+</head>
+<body>
+  <button id="btn1">Botón 1</button>
+  <button id="btn2">Botón 2</button>
+  <button id="btn3">Botón 2</button>
+
+  <script>
+    // Redirección al hacer clic
+    document.getElementById('btn1').addEventListener('click', () => {
+      window.location.href = 'home.html';
+    });
+
+    document.getElementById('btn2').addEventListener('click', () => {
+      window.location.href = 'alias.html';
+    });
+    
+document.getElementById('btn3').addEventListener('click', () => {
+      window.location.href = 'historialcomprobantes.html';
+    });
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ver Comprobante</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+}
+
+.header img {
+  width: 100%;
+  height: 60px;
+  display: block;
+}
+
+#btn1{
+  position:absolute;
+  top:20px;
+  left:10px;
+  width:30px;
+  height:30px;
+  background:transparent;
+  border:none;
+  cursor:pointer;
+}
+
+/* SCROLL */
+.contenido {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding-top: 1px;
+}
+
+/* IMAGEN SCROLL */
+.fondo-img {
+  width: 100%;
+  display: block;
+}
+
+/* OVERLAY */
+.overlay-datos {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.monto,
+.nombre,
+.cbu-label,
+.cbu-valor,
+.cuil-label,
+.cuil-valor,
+.fecha,
+.dest-nombre,
+.dest-banco-nombre,
+.dest-cvu-label,
+.dest-cvu-valor,
+.dest-cuil-label,
+.dest-cuil-valor,
+.id-largo,
+.codigo-random {
+  position: absolute;
+  pointer-events: auto;
+}
+
+/* POSICIONES DE DATOS */
+.monto { top: 233px; left: 54px; }
+.monto .peso { position: absolute; top: 8px; left: -12px; font-size:17px; font-weight:bold; color:#333; }
+.monto .numero { position:absolute; top:-2px; left:2px; font-size:27px; font-weight:bold; color:#333; }
+
+.fecha { top: 268px; left: 42px; font-size:12px; color:#686868; }
+
+.nombre { top: 365px; left: 83px; font-size:15px; color:#373737; }
+.banco-fijo { position:absolute; top:385px; left:83px; font-size:11px; color:#9D9D9D; }
+
+.cbu-label { top:420px; left:42px; font-size:12px; color:#818181; }
+.cbu-valor { top:438px; left:42px; font-size:15px; color:#0D0D0D; }
+
+.cuil-label { top:475px; left:42px; font-size:12px; color:#818181; }
+.cuil-valor { top:494px; left:42px; font-size:15px; color:#0D0D0D; }
+
+.dest-nombre { top:601px; left:83px; font-size:15px; color:#373737; }
+.dest-banco-logo { position:absolute; top:605px; left:47px; width:22px; height:22px; object-fit:contain; }
+.dest-banco-nombre { top:622px; left:83px; font-size:11px; color:#9D9D9D; }
+
+.dest-cvu-label { top:655px; left:42px; font-size:13px; color:#818181; }
+.dest-cvu-valor { top:675px; left:42px; font-size:15px; color:#0D0D0D; }
+
+.dest-cuil-label { top:710px; left:42px; font-size:13px; color:#818181; }
+.dest-cuil-valor { top:730px; left:42px; font-size:15px; color:#0D0D0D; }
+
+.id-largo { top:912px; left:42px; font-size:15px; color:#282828; }
+.codigo-random { top:857px; left:42px; font-size:15px; color:#282828; }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <img src="img5/header_comprobante2.png" id="headerImg">
+  <button id="btn1"></button>
+</div>
+
+<div class="contenido">
+  <div id="espacioHeader"></div>
+
+  <img src="img5/fondo_comprobante2.png" class="fondo-img">
+
+  <div class="overlay-datos">
+    <div class="monto">
+      <span class="peso">$</span>
+      <span class="numero" id="montoTexto">0</span>
+    </div>
+
+    <div class="fecha" id="fechaTexto"></div>
+
+    <div class="nombre" id="nombreTexto"></div>
+    <div class="banco-fijo">Naranja X</div>
+
+    <div class="cbu-label">CBU</div>
+    <div class="cbu-valor" id="cbuTexto"></div>
+
+    <div class="cuil-label">CUIL</div>
+    <div class="cuil-valor" id="cuilTexto"></div>
+
+    <div class="dest-nombre" id="destNombre"></div>
+    <img class="dest-banco-logo" id="destBancoLogo">
+    <div class="dest-banco-nombre" id="destBancoNombre"></div>
+
+    <div class="dest-cvu-label">CVU</div>
+    <div class="dest-cvu-valor" id="destCvu"></div>
+
+    <div class="dest-cuil-label">CUIL</div>
+    <div class="dest-cuil-valor" id="destCuil"></div>
+
+    <div class="id-largo" id="idLargo"></div>
+    <div class="codigo-random" id="codigoRandom"></div>
+  </div>
+</div>
+
+<script>
+  function formatearCUIT(cuit) {
+    cuit = cuit.replace(/\D/g,'');
+    return cuit.length === 11 ? `${cuit.slice(0,2)}-${cuit.slice(2,10)}-${cuit.slice(10)}` : cuit;
+  }
+  
+
+  const btn1 = document.getElementById('btn1');
+  btn1.onclick = () => location.href = 'historialcomprobantes.html';
+
+  const header = document.getElementById('headerImg');
+  const espacio = document.getElementById('espacioHeader');
+  header.onload = () => espacio.style.height = header.offsetHeight + 'px';
+
+  // Cargar los datos del historial seleccionado
+  const comprobante = JSON.parse(localStorage.getItem('selectedCuentaHistorial') || "{}");
+
+  if(comprobante){
+    document.getElementById("montoTexto").textContent =
+      Number(comprobante.monto || 0).toLocaleString("es-AR");
+    
+    document.getElementById("nombreTexto").textContent =
+      comprobante.mi_nombre_completo || localStorage.getItem("mi_nombre_completo") || "";
+
+    document.getElementById("cbuTexto").textContent = comprobante.cbu || "";
+    document.getElementById("cuilTexto").textContent = formatearCUIT(comprobante.cuil || "");
+
+    // ===== CORRECCIÓN FECHA =====
+// ===== FECHA SEGURA (FORMATO NUMÉRICO) =====
+const fechaObj = comprobante.fechaISO
+  ? new Date(comprobante.fechaISO)
+  : new Date();
+
+const dia = String(fechaObj.getDate()).padStart(2,'0');
+const mes = String(fechaObj.getMonth() + 1).padStart(2,'0');
+const anio = fechaObj.getFullYear();
+const hora = String(fechaObj.getHours()).padStart(2,'0');
+const min = String(fechaObj.getMinutes()).padStart(2,'0');
+
+document.getElementById("fechaTexto").textContent =
+  `${dia}/${mes}/${anio} - ${hora}:${min}h`;
+
+    document.getElementById("destNombre").textContent = comprobante.destNombre || "";
+    document.getElementById("destBancoNombre").textContent = comprobante.destBanco || "";
+    document.getElementById("destCvu").textContent = comprobante.destCvu || "";
+    document.getElementById("destCuil").textContent = comprobante.destCuil || "";
+
+    // Logo según banco
+    const logo = document.getElementById('destBancoLogo');
+    const b = (comprobante.destBanco || "").toLowerCase();
+    if (b.includes("mercado")) logo.src="img4/mercadopago.png";
+    else if (b.includes("naranja")) logo.src="img4/nx.png";
+    else if (b.includes("uala")) logo.src="img4/uala.png";
+    else if (b.includes("brubank")) logo.src="img4/brubank.png";
+    else logo.src="img4/banco_default.png";
+
+    document.getElementById("idLargo").textContent = comprobante.idLargo || "";
+    document.getElementById("codigoRandom").textContent = comprobante.codigoRandom || "";
+  }
+</script>
+
+</body>
+</html>
