@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmar Transferencia</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; font-family:Arial, sans-serif; position:relative; }
+
+:root {
+  /* CVU y CUIL */
+  --info-font-size: 15px;       /* tamaño letra CVU/CUIL */
+  --info-width: 250px;          /* ancho del contenedor */
+  --info-height: auto;          /* alto del contenedor */
+  --info-top: 305px;            /* top contenedor info */
+  --info-left: 17px;            /* left contenedor info */
+  --info-gap:10px;              /* separación entre CVU y CUIL */
+  --cvu-offset: -5px;            /* mover número del CVU arriba/abajo */
+  --cuil-offset: -10px;           /* mover número del CUIL arriba/abajo */
+  --cvu-font-weight: normal;    /* grosor del CVU */
+  --cuil-font-weight: normal;   /* grosor del CUIL */
+
+  /* Banco */
+  --bank-font-size: 15px;       /* tamaño letra del nombre del banco */
+  --bank-font-weight: 500;   /* grosor del nombre del banco */
+  --bank-width: 27px;           /* ancho de la imagen del banco */
+  --bank-height: 27px;          /* alto de la imagen del banco */
+  --bank-top: 264px;            /* top del contenedor banco */
+  --bank-left: 20px;            /* left del contenedor banco */
+  --bank-gap: 13px;             /* separación entre imagen y nombre */
+}
+
+body {
+  background-image:url('img3/fondo_confirmar.png');
+  background-size:cover;
+  background-position:fit_center;
+  background-repeat:no-repeat;
+  color:#333333;
+}
+
+.back-button {
+  position:absolute;
+  top:25px;
+  left:10px;
+  width:40px;
+  height:40px;
+  background-color:transparent;
+  border:none;
+  cursor:pointer;
+}
+
+.alias-text {
+  position:absolute;
+  top:145px;
+  left:32px;
+  width:350px;
+  height:30px;
+  font-size:15px;
+  font-weight:bold;
+  line-height:1.3;
+}
+
+.amount-text {
+  position:absolute;
+  top:80px;
+  left:32px;
+  height:70px;
+  font-weight:bold;
+  line-height:1.2;
+  display:flex;
+  align-items:flex-end;
+}
+
+.amount-text .symbol {
+  font-size:18px;
+  margin-right:5px;
+  position: relative;
+  top:50px;
+}
+
+.amount-text .number {
+  font-size:30px;
+  position: relative;
+  top:55px;
+}
+
+/* Contenedor banco */
+.bank-container {
+  position:absolute;
+  top: var(--bank-top);
+  left: var(--bank-left);
+  display:flex;
+  align-items:center;
+  gap: var(--bank-gap);
+}
+
+.bank-container img {
+  width: var(--bank-width);
+  height: var(--bank-height);
+  object-fit:contain;
+}
+
+.bank-name {
+  font-size: var(--bank-font-size);
+  font-weight: var(--bank-font-weight); /* grosor modificable */
+  color: #333333;
+}
+
+/* Contenedor CVU/CUIL */
+.info-container {
+  position:absolute;
+  top: var(--info-top);
+  left: var(--info-left);
+  display:flex;
+  flex-direction:column;
+  gap: var(--info-gap); 
+  width: var(--info-width);
+  height: var(--info-height);
+  font-size: var(--info-font-size);
+}
+
+.info-container .label {
+  font-weight: normal; 
+  color: #5B5B5B;
+}
+
+.info-container .value {
+  font-weight: normal; /* se modificará por variable */
+  color: #000000;
+  position: relative;
+}
+
+#cvuValue { 
+  top: var(--cvu-offset); 
+  font-weight: var(--cvu-font-weight);
+}
+#cuilValue { 
+  top: var(--cuil-offset); 
+  font-weight: var(--cuil-font-weight);
+}
+
+.btn-continue {
+  margin-top: 295px;
+  width: 375px;
+  height: 45px;
+  border: none;
+  border-radius: 15px;
+  background: #50007f;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+</style>
+</head>
+<body>
+
+<button class="back-button" onclick="window.location.href='monto.html'"></button>
+
+<div class="alias-text" id="aliasText">Vas a transferir a </div>
+
+<div class="amount-text" id="amountText">
+  <span class="symbol">$</span><span class="number">0</span>
+</div>
+
+<!-- Contenedor banco -->
+<div class="bank-container" id="bankContainer">
+  <img src="img4/banco_default.png" alt="Logo banco" id="bankLogo">
+  <div class="bank-name" id="bankName"></div>
+</div>
+
+<!-- Contenedor CVU y CUIL -->
+<div class="info-container">
+  <div class="label">CVU</div>
+  <div class="value" id="cvuValue"></div>
+
+  <div class="label">CUIL</div>
+  <div class="value" id="cuilValue"></div>
+  <button class="btn-continue" onclick="btn_continue()">Continuar</button>
+</div>
+
+<script>
+  // Traer datos del alias guardado en localStorage
+  let alias = 'Usuario';
+  let banco = '';
+  let cvu = '';
+  let cuil = '';
+
+  const savedCuenta = localStorage.getItem('selectedCuenta');
+  if(savedCuenta){
+    try{
+      const cuenta = JSON.parse(savedCuenta);
+      alias = cuenta.nombre || 'Usuario';
+      banco = cuenta.banco || '';
+      cvu = cuenta.cvu || '';
+      cuil = cuenta.cuit || ''; // CUIL guardado
+    }catch{}
+  }
+
+  // Monto ingresado
+  const monto = localStorage.getItem('monto') || '0';
+
+  // Actualizar alias y monto
+  document.getElementById('aliasText').innerText = `Vas a transferir a ${alias}`;
+  const amountText = document.getElementById('amountText');
+  amountText.querySelector('.number').innerText = Number(monto).toLocaleString('es-AR');
+
+  // Actualizar banco según tipo
+  const bankLogo = document.getElementById('bankLogo');
+  const bankName = document.getElementById('bankName');
+
+  switch (banco.toLowerCase()) {
+    case 'mercado pago':
+    case 'mercadopago':
+      bankLogo.src = 'img4/mercadopago.png';
+      break;
+
+    case 'naranja x':
+    case 'nx':
+    case 'naranjax':
+      bankLogo.src = 'img4/nx.png';
+      break;
+
+    case 'uala':
+      bankLogo.src = 'img4/uala.png';
+      break;
+
+    case 'brubank':
+      bankLogo.src = 'img4/brubank.png';
+      break;
+
+    default:
+      bankLogo.src = 'img4/banco_default.png';
+  }
+
+  bankName.innerText = banco;
+
+  // CVU y CUIL
+  document.getElementById('cvuValue').innerText = cvu || 'No disponible';
+  document.getElementById('cuilValue').innerText = cuil || 'No disponible';
+  
+  function btn_continue() {
+
+  // Monto a transferir
+  const monto = Number(localStorage.getItem('monto') || 0);
+
+  // Dinero actual (KEY CORRECTA)
+  let dineroTotal = Number(localStorage.getItem('dinero_cargado') || 0);
+
+  // Restar
+  dineroTotal -= monto;
+
+  // Evitar negativos
+  if (dineroTotal < 0) dineroTotal = 0;
+
+  // Guardar nuevo saldo
+  localStorage.setItem('dinero_cargado', dineroTotal);
+
+  // Volver a home
+  window.location.href = 'carga.html';
+}
+
+</script>
+
+</body>
+</html>
